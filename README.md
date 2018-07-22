@@ -8,11 +8,17 @@ For an attempt to introduce context encodings into Char RNN data preparation see
 
 ## Installation
 
-Make sure you have a recent version of Python 2.7
+Clone the repository.
 
 ```
 git clone https://github.com/thundercomb/pytorch-char-rnn
 cd pytorch-char-rnn
+```
+
+Make sure you have a recent version of Python 2.7 and python pip. Install the library dependencies.
+
+```
+pip install -r requirements.txt
 ```
 
 ## Input
@@ -63,6 +69,40 @@ The generate program outputs sampled text to the terminal.
 
 ```
 python2.7 generate.py --checkpoint checkpoints/checkpoint_ep_0.789.cp --sample_len 2000 --charfile data/poetry_chars.pkl --temperature 1
+```
+
+### Detect similarity
+
+The similarity program allows you to detect similarity between the autoencoder model of a text and a text provided as input to the script. It provides a similarity score as a percentage indicating similarity of style and content.
+
+As an example a sentence from the original modelled text should detect high similarity and score over 97%. A text in the same language, but written in a very different style might score 92-95%. 
+
+An input text written in a totally different language should score significantly lower, eg. 80-85%. And if the texts do not share many textual characters, the score will drop precipitously.
+
+Under the hood the script actually detects variance, and then converts it to a similarity score for convenience. The lower the detected variance, the more like the original text the provided text is.
+
+**Example 1**: Compare English text from Jane Austen's *Persuasion* with a model trained on Jane Austen's fiction.
+
+```
+python2.7 similarity.py \
+--text "Sir Walter Elliot, of Kellynch Hall, in Somersetshire, was a man who, for his own amusement, never took up any book but the Baronetage; there he found occupation for an idle hour" \
+--checkpoint checkpoints/austen_checkpoint.cp \
+--charfile charfiles/austen_chars.pkl 
+Parameters found at checkpoints/austen_checkpoint.cp... loading
+
+Detected similarity: 99.15%
+```
+
+**Example 2**: Compare German text from the Bible with a model trained on Jane Austen's fiction.
+
+```
+python2.7 similarity.py \
+--text "Am Anfang schuf Gott Himmel und Erde. Und die Erde war wust und leer, und es war finster auf der Tiefe; und der Geist Gottes schwebte auf dem Wasser." \
+--checkpoint checkpoints/austen_checkpoint.cp \
+--charfile charfiles/austen_chars.pkl 
+Parameters found at checkpoints/austen_checkpoint.cp... loading
+
+Detected similarity: 84.9%
 ```
 
 ## Contact
