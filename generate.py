@@ -50,7 +50,8 @@ def manual_sample(x, temperature):
     return x.astype(np.int64)
 
 def sample(model, prime_str, predict_len, temperature, concatenate):
-    hidden = Variable(model.create_hidden(1), volatile=True)
+    with torch.no_grad():
+        hidden = model.create_hidden(1)
     prime_tensors = [index_to_tensor(char_to_index[char]) for char in prime_str]
 
     for prime_tensor in prime_tensors[-2:]:
@@ -62,11 +63,11 @@ def sample(model, prime_str, predict_len, temperature, concatenate):
         output, hidden = model(inp, hidden)
 
         # Sample from the network as a multinomial distribution
-        output_dist = output.data.view(-1).div(temperature).exp()
-        top_i = torch.multinomial(output_dist, 1)[0]
+        # output_dist = output.data.view(-1).div(temperature).exp()
+        # top_i = torch.multinomial(output_dist, 1)[0]
 
         # Alternative: use numpy
-        # top_i = manual_sample(output.data.numpy(), temperature)
+        top_i = manual_sample(output.data.numpy(), temperature)
 
         # Add predicted character to string and use as next input
         predicted_char = index_to_char[top_i]
