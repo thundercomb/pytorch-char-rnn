@@ -12,8 +12,9 @@
 #              And if the texts do not share many textual characters, the score will drop 
 #              precipitously.
 #
-#              The higher the detected variance, the more like the original text the 
-#              provided text is.
+#              Under the hood the script actually detects variance, and then converts it
+#              to a similarity score for convenience. The lower the detected variance,
+#              the more like the original text the provided text is.
 #             
 #=========================================================================================
 
