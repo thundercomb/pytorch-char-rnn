@@ -15,7 +15,7 @@ git clone https://github.com/thundercomb/pytorch-char-rnn
 cd pytorch-char-rnn
 ```
 
-Make sure you have a recent version of Python 2.7 and python pip. Install the library dependencies.
+Make sure you have a recent version of Python 2.7 and Python pip, then install the library dependencies.
 
 ```
 pip install -r requirements.txt
@@ -87,7 +87,7 @@ Under the hood the script actually detects variance, and then converts it to a s
 python2.7 similarity.py \
 --text "Sir Walter Elliot, of Kellynch Hall, in Somersetshire, was a man who, for his own amusement, never took up any book but the Baronetage; there he found occupation for an idle hour" \
 --checkpoint checkpoints/austen_checkpoint.cp \
---charfile charfiles/austen_chars.pkl 
+--charfile data/austen_chars.pkl 
 Parameters found at checkpoints/austen_checkpoint.cp... loading
 
 Detected similarity: 99.15%
@@ -99,7 +99,7 @@ Detected similarity: 99.15%
 python2.7 similarity.py \
 --text "Am Anfang schuf Gott Himmel und Erde. Und die Erde war wust und leer, und es war finster auf der Tiefe; und der Geist Gottes schwebte auf dem Wasser." \
 --checkpoint checkpoints/austen_checkpoint.cp \
---charfile charfiles/austen_chars.pkl 
+--charfile data/austen_chars.pkl 
 Parameters found at checkpoints/austen_checkpoint.cp... loading
 
 Detected similarity: 84.9%
