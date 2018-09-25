@@ -1,4 +1,4 @@
-# Syntax Char RNN
+# Char RNN
 
 ## Introduction
 
