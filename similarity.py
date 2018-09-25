@@ -65,53 +65,15 @@ def check_probability(x, char, temperature):
         # if character not in our dict then assume it's a bad match
         return len(char_to_index) + 1
 
-    if debug:
-        print("Length of char_to_index: " + str(len(char_to_index)))
-        print("Current char: " + char + " " + str(cn))
-        print("Calculations x...")
-
     x = x.reshape(-1).astype(np.float)
     x /= temperature
     x = np.exp(x)
     x /= np.sum(x)
 
-    if debug:
-        print("Length of x: " + str(len(x)))
-        print(x)
-        for i, j in enumerate(x):
-            print(i, j)
+    reverse_sorted_x = sorted(x, reverse=True)
+    cx = reverse_sorted_x.index(x[cn])
 
-    xx = [sorted(x, reverse=True).index(i) for i in x]
-
-    if debug:
-        print(sorted(x, reverse=True))
-        for i in sorted(x, reverse=True):
-            xx.append(x.tolist().index(i))
-        print("xx:" + str(xx))
-        print("char: " + char + "  " + str(cn))
-        print("PREDICTED PROBABILITY ORDER: " + str(xx[cn]))
-
-    # xx contains the ordered values of char_to_index
-    # i.e. a value '21' in first position means
-    # the character at position 22 (21+1) in x was
-    # the most probable, and so on
-
-    xxx = x
-    x = random_state.multinomial(1, x)
-
-    if debug:
-        print(x)
-
-    x = np.argmax(x)
-
-    if debug:
-        print("Value: " + str(xxx[x]))
-        print("Next char: " + index_to_char[x] + " " + str(x))
-        print("Order of relevance: " + str(sorted(xxx, reverse=True).index(xxx[x])))
-        print("End Manual Sample")
-
-    #return x.astype(np.int64)
-    return xx[cn]
+    return cx
 
 def get_variance(model, text, temperature):
     with torch.no_grad():
@@ -130,9 +92,7 @@ def get_variance(model, text, temperature):
         if char in char_to_index:
             inp = index_to_tensor(char_to_index[char])
         else:
-            # if character not in char_to_index then it means it's a bad match for the model
-            # yay! randomly pick the next seeding
-            inp = index_to_tensor(char_to_index[random.choice(char_to_index.keys())])
+            inp = inp
 
     return probabilities
 
