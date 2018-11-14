@@ -58,37 +58,41 @@ def index_to_tensor(index):
     tensor[0,0] = index
     return Variable(tensor)
 
-def check_probability(x, char, temperature):
-    if char in char_to_index:
-        cn = char_to_index[char]
-    else:
-        # if character not in our dict then assume it's a bad match
-        return len(char_to_index) + 1
-
-    x = x.reshape(-1).astype(np.float)
-    x /= temperature
-    x = np.exp(x)
-    x /= np.sum(x)
-
-    reverse_sorted_x = sorted(x, reverse=True)
-    cx = reverse_sorted_x.index(x[cn])
+def check_probability(x, cni):
+    x_last = x.view(-1)
+    reverse_sorted_x = torch.sort(x_last, descending=True)[0]
+    cx = (reverse_sorted_x == x_last[cni]).nonzero()
 
     return cx
 
-def get_variance(model, text, temperature):
+def get_variance(model, text):
     with torch.no_grad():
         hidden = model.create_hidden(1)
+    last_char = "."
+    inp = index_to_tensor(char_to_index[last_char])
 
-    prime_tensors = [index_to_tensor(char_to_index[char]) for char in text[0]]
-
-    for prime_tensor in prime_tensors[-2:]:
-        _, hidden = model(prime_tensor, hidden)
-
-    inp = prime_tensors[-1]
-    probabilities = []
+    probabilities = torch.tensor([]).to(torch.long)
+    if use_cuda:
+        probabilities = probabilities.cuda()
     for char in text[1:]:
+        if use_cuda:
+            hidden = hidden.cuda()
+            inp = inp.cuda()
         output, hidden = model(inp, hidden)
-        probabilities.append(check_probability(output.data.numpy(), char, temperature))
+
+        if char in char_to_index:
+            cni = torch.tensor([char_to_index[char]])
+            output_data = output.data.to(torch.float64)
+            if use_cuda:
+                output_data = output_data.cuda()
+            char_probability = check_probability(output_data, cni)
+        else:
+            char_probability = torch.tensor([[len(char_to_index) + 1]])
+
+        if use_cuda:
+            char_probability = char_probability.cuda()
+        probabilities = torch.cat((probabilities, char_probability[0]))
+
         if char in char_to_index:
             inp = index_to_tensor(char_to_index[char])
         else:
@@ -108,9 +112,11 @@ for key in checkpoint['model'].keys():
     if 'cells.weight_hh' in key:
         n_layers = n_layers + 1
 
+use_cuda = torch.cuda.is_available()
+
 model = RNN(chars_len, hidden_size, chars_len, n_layers, 0.5)
 model.load_state_dict(checkpoint['model'])
-total_variance = get_variance(model, args.text, args.temperature)
+total_variance = get_variance(model, args.text)
 variance = [ float(v) / len(char_to_index) for v in total_variance ]
 average_similarity_percentage = 100 - (float(sum(variance)) / float(len(variance)) * 100)
 
